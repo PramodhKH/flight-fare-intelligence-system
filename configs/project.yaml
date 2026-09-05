@@ -132,3 +132,26 @@ phase5:
     - sparse_market_context
     - unseen_market_context
     - long_duration_p90_plus
+
+phase6:
+  champion: xgboost
+  evaluation_split: validation
+  sealed_split: test
+  retuning_allowed: false
+  global_explainability:
+    method: approximate_treeshap
+    coverage: full_validation_split
+  local_explainability:
+    method: exact_treeshap
+    representative_cases:
+      - representative_economy
+      - representative_business
+      - representative_last_minute
+      - representative_high_fare
+  raw_feature_aggregation: sum_transformed_shap_back_to_deployed_feature
+  segment_explanations:
+    - overall_validation
+    - economy
+    - business
+    - last_minute_1_7_days
+    - high_fare_80k_plus

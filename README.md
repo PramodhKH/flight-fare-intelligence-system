@@ -8,7 +8,7 @@ An explainable airfare decision-intelligence platform built on **300,153 flight 
 - ✅ Phase 2 — Flight Market Intelligence, EDA & Leakage-Safe Splitting
 - ✅ Phase 3 — Reproducible Baseline Regression System
 - ✅ Phase 4 — Large-Scale Tree Model Benchmarking
-- ⏳ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
+- ✅ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
 - ⏳ Phase 6 — Explainable Fare Engine
 - ⏳ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
 - ⏳ Phase 8 — Production ML & Analytics API
@@ -88,23 +88,19 @@ The locked Phase 4 run produced:
 
 XGBoost is the Phase 4 champion under the RMSE-first selection policy, with Random Forest retained as the strongest robustness comparator.
 
-## Phase 5 reliability focus
+## Phase 5 reliability findings
 
-Phase 5 does not retune XGBoost. It diagnoses the locked champion across:
+Phase 5 kept XGBoost locked and showed that the excellent aggregate **0.9861 R²** is not uniformly reliable. Business fares and last-minute bookings carry materially larger absolute error, while the extreme ₹80k+ tail is systematically underpredicted. Raw training-context frequency was also shown to be insufficient as a standalone confidence proxy.
 
-- Economy vs Business;
-- airline and directed route;
-- booking horizon;
-- stops and departure period;
-- fare bands;
-- sparse/unseen categorical market contexts;
-- last-minute flights;
-- long-duration itineraries; and
-- extreme high-fare cases.
+See [`PHASE_5.md`](PHASE_5.md) for the full reliability methodology and diagnostics.
 
-The key reliability question is whether the excellent aggregate **0.9861 R²** remains trustworthy across the scenarios the final decision-support product will expose.
+## Phase 6 explainability focus
 
-See [`PHASE_5.md`](PHASE_5.md) for the full methodology and reference diagnostics.
+Phase 6 adds an additive SHAP explanation layer without retuning the champion or touching the sealed test split. It explains the full validation set, aggregates one-hot SHAP values back to the eight deployed inputs, compares model drivers across Economy, Business, last-minute, and high-fare segments, and generates exact local explanations for deterministic representative cases.
+
+The implementation deliberately separates **explanation** from **confidence**: SHAP describes how the model formed a fare estimate, while Phase 7 will use uncertainty and historical error behavior to determine how much trust to place in that estimate.
+
+See [`PHASE_6.md`](PHASE_6.md) for the methodology and generated artifacts.
 
 ## Run
 
@@ -123,9 +119,10 @@ make phase2
 make phase3
 make phase4
 make phase5
+make phase6
 ```
 
-`make phase5` expects the local Phase 4 champion/model outputs to exist. If generated artifacts were removed, rerun `make phase4` first.
+`make phase6` expects the local Phase 4 champion and Phase 5 reliability outputs to exist. If generated artifacts were removed, rerun the earlier phase gates first.
 
 Generated data, metrics, predictions, figures, and model binaries are intentionally ignored by Git; the code that reproduces them is version-controlled.
 

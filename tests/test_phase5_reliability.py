@@ -62,15 +62,15 @@ def test_build_reliability_frame_adds_required_diagnostics() -> None:
         training_frame=training,
     )
     assert {
-    "record_id",
-    "actual_price",
-    "predicted_price",
-    "absolute_error",
-    "route",
-    "booking_horizon",
-    "fare_band",
-    "training_context_rows",
-    "support_bucket",
+        "record_id",
+        "actual_price",
+        "predicted_price",
+        "absolute_error",
+        "route",
+        "booking_horizon",
+        "fare_band",
+        "training_context_rows",
+        "support_bucket",
     }.issubset(frame.columns)
     assert frame["route"].tolist() == ["Delhi>Mumbai", "Delhi>Mumbai"]
 

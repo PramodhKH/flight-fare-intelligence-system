@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Verify the Phase 4 ML stack resolves in the active Python interpreter."""
+"""Verify the project ML/explainability stack resolves in the active interpreter."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import sys
 import catboost
 import numpy
 import pandas
+import shap
 import sklearn
 import xgboost
 
@@ -23,6 +24,7 @@ def main() -> None:
             "scikit_learn": sklearn.__version__,
             "xgboost": xgboost.__version__,
             "catboost": catboost.__version__,
+            "shap": shap.__version__,
         },
         "ide_note": "VS Code should use <project>/.venv/bin/python on macOS/Linux.",
     }

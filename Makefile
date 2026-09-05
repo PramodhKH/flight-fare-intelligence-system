@@ -1,7 +1,7 @@
 PYTHON ?= python
 DATA ?= data/raw/Flight_Booking.csv
 
-.PHONY: install envcheck validate test lint phase1 phase2 phase3 phase4 phase5
+.PHONY: install envcheck validate test lint phase1 phase2 phase3 phase4 phase5 phase6
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -44,5 +44,10 @@ phase4: envcheck validate
 
 phase5: envcheck validate
 	$(PYTHON) scripts/run_phase5.py $(DATA) --assignments data/processed/phase2_split_assignments.csv
+	$(PYTHON) -m pytest
+	$(PYTHON) -m ruff check src scripts tests
+
+phase6: envcheck validate
+	$(PYTHON) scripts/run_phase6.py $(DATA) --assignments data/processed/phase2_split_assignments.csv --seed 42
 	$(PYTHON) -m pytest
 	$(PYTHON) -m ruff check src scripts tests
