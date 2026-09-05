@@ -416,7 +416,7 @@ The repository was built phase-by-phase rather than as a single notebook dump:
 9. Streamlit dashboard and hardening
 10. Final held-out evaluation and portfolio release
 
-See [`PHASE_10.md`](PHASE_10.md) for the final release record and [`docs/portfolio_snippets.md`](docs/portfolio_snippets.md) for resume/LinkedIn-ready descriptions.
+See [`PHASE_10.md`](PHASE_10.md) for the final release record.
 
 ---
 
