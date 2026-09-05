@@ -24,6 +24,30 @@ features:
     - arrival_time
   ignored:
     - "Unnamed: 0"
+splitting:
+  strategy: scenario_grouped_stratified
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  test_fraction: 0.15
+  group_by:
+    - airline
+    - source_city
+    - destination_city
+    - departure_time
+    - stops
+    - class
+    - duration
+    - days_left
+  stratify_by:
+    - directed_route
+    - class
+    - booking_horizon
+  booking_horizon_buckets:
+    - "1-7"
+    - "8-14"
+    - "15-21"
+    - "22-35"
+    - "36-49"
 models:
   planned:
     - linear_regression

@@ -31,4 +31,6 @@ reports/predictions/*
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Editable-install package metadata
 *.egg-info/

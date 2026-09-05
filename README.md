@@ -1,113 +1,115 @@
 # Flight Fare Intelligence System
 
-Production-oriented machine-learning system for flight fare prediction and travel-price intelligence using 300,153 historical booking records.
+An explainable airfare decision-intelligence platform built on **300,153 flight records**. The project progresses from leakage-aware large-tabular regression through uncertainty estimation, contextual fare scoring, route intelligence, SHAP explainability, counterfactual simulation, FastAPI inference, and a Streamlit decision-support dashboard.
 
-> Current status: **Phase 1 - repository foundation and strict data contract**.
+## Project status
 
-## Portfolio objective
+- ✅ Phase 1 — Engineering Foundation, Legacy Audit & Data Contract
+- ✅ Phase 2 — Flight Market Intelligence, EDA & Leakage-Safe Splitting
+- ⏳ Phase 3 — Reproducible Baseline Regression System
+- ⏳ Phase 4 — Large-Scale Tree Model Benchmarking
+- ⏳ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
+- ⏳ Phase 6 — Explainable Fare Engine
+- ⏳ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
+- ⏳ Phase 8 — Production ML & Analytics API
+- ⏳ Phase 9 — Interactive Dashboard & Engineering Hardening
+- ⏳ Phase 10 — Final Results, Architecture & Portfolio Story
 
-This rebuild turns a notebook-style flight-price regression exercise into an end-to-end ML system with reproducible data validation, benchmarked regression models, route/fare analytics, SHAP explanations, a FastAPI prediction service, and a Streamlit what-if application.
+## Dataset
 
-## Dataset snapshot
+The canonical dataset contains 300,153 records spanning six airlines, six cities, 30 directed routes, Economy and Business cabin classes, trip duration, stops, departure/arrival periods, and booking horizons from 1–49 days before departure.
 
-- 300,153 flight records
-- 6 airlines
-- 6 source cities and 6 destination cities
-- 30 observed directed routes
-- 2 cabin classes: Economy and Business
-- booking horizon: 1-49 days before departure
-- ticket price range: INR 1,105-INR 123,071
-- no missing values in the supplied dataset
-
-## Deployment feature contract
-
-The production model will accept exactly these user-facing features:
-
-1. `airline`
-2. `source_city`
-3. `destination_city`
-4. `departure_time`
-5. `stops`
-6. `class`
-7. `duration`
-8. `days_left`
-
-Target: `price`.
-
-`flight` and `arrival_time` are retained for analytics but are not part of the deployment input contract. `Unnamed: 0` is an export index and is never a model feature.
-
-## Planned model progression
-
-1. Linear Regression - interpretable baseline
-2. Random Forest Regressor
-3. XGBoost Regressor
-4. CatBoost Regressor
-
-Primary metric: **RMSE**. Secondary metrics: **MAE, R2, and MAPE**, with subgroup error analysis by class, airline, route, stops, and booking horizon.
-
-## Planned intelligence layer
-
-Beyond point prediction, the final system will provide:
-
-- SHAP explanations for individual fare predictions
-- route-level fare analytics
-- price-vs-days-left analysis
-- scenario/what-if fare prediction
-- FastAPI inference endpoints
-- Streamlit frontend
-- Docker packaging and CI tests
-
-## Legacy baseline
-
-The original Intellipaat reference reported approximately:
-
-- Linear Regression RMSE: INR 7,259.93; MAPE ~34%
-- Decision Tree RMSE: INR 3,620; MAPE ~7.7%
-- Random Forest RMSE: INR 2,824; MAPE ~7.3%
-
-These figures are historical references only. The rebuilt project will generate its own leakage-safe held-out benchmarks using a reproducible pipeline.
-
-## Repository layout
+The raw CSV is intentionally ignored by Git. Place it at:
 
 ```text
-api/                       FastAPI layer
-configs/                   project/model configuration
-data/{raw,interim,processed}/
-docs/assets/               README/application assets
-legacy/                    original coursework/reference material
-models/                    trained artifacts (not committed)
-notebooks/                 analysis-only notebooks
-reports/{figures,metrics,predictions}/
-scripts/                   CLI entry points
-src/flight_fare_intelligence/ reusable package code
-tests/                     automated tests
-.github/workflows/          CI
+data/raw/Flight_Booking.csv
 ```
 
-## Phase 1 setup
+## Production feature contract
+
+The deployed fare model will use exactly:
+
+```text
+airline
+source_city
+destination_city
+departure_time
+stops
+class
+duration
+days_left
+```
+
+Target: `price`
+
+`flight` and `arrival_time` remain available for analysis only. `Unnamed: 0` is an export index and is ignored by the model.
+
+## Phase 2 evaluation design
+
+Phase 2 discovered 10,434 rows that repeat an already-observed deployed feature vector. A naive row-random split can therefore place the exact same production-input scenario in both training and evaluation.
+
+The project instead uses a **scenario-grouped, stratified 70/15/15 split**:
+
+- identical deployed feature vectors remain together;
+- stratification preserves directed route × cabin class × booking-horizon coverage;
+- booking-horizon buckets are 1–7, 8–14, 15–21, 22–35, and 36–49 days;
+- random seed is 42;
+- scenario overlap across train/validation/test must be exactly zero.
+
+See [`PHASE_2.md`](PHASE_2.md) for the canonical findings and split rationale.
+
+## Run
+
+Create a Python 3.11 virtual environment and install the project:
 
 ```bash
-python3.11 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\\Scripts\\activate
 python -m pip install --upgrade pip setuptools wheel
 pip install -e ".[dev]"
-python scripts/validate_data.py data/raw/Flight_Booking.csv --strict
-pytest
-ruff check src scripts tests
 ```
 
-Or run:
+Validate Phase 1:
 
 ```bash
 make phase1
 ```
 
-## Engineering principles
+Run Phase 2 analytics and split generation:
 
-- no model logic hidden only in notebooks
-- deterministic/config-driven workflows
-- strict schema checks before training
-- train/validation/test evaluation with no preprocessing leakage
-- saved preprocessing + model artifacts as one inference contract
-- API/UI input schema aligned with training features
-- automated tests before every phase commit
+```bash
+make phase2
+```
+
+Phase 2 produces local, reproducible outputs under:
+
+```text
+reports/metrics/
+reports/figures/
+data/processed/
+```
+
+Generated data and figures are intentionally ignored by Git; the code that reproduces them is version-controlled.
+
+## Planned model progression
+
+```text
+Linear Regression → Random Forest → XGBoost → CatBoost
+```
+
+The champion model will be selected using predictive quality plus training cost, inference latency, model size, segment reliability, and robustness—not RMSE alone.
+
+## Final product direction
+
+The completed system will provide:
+
+- fare prediction with uncertainty bounds;
+- Fare Opportunity Score and contextual cheap/fair/expensive positioning;
+- route and booking-horizon intelligence;
+- Buy Now / Wait model-based guidance;
+- reliability scoring;
+- counterfactual what-if simulation;
+- SHAP explanations;
+- FastAPI single and batch inference;
+- Streamlit decision-support dashboard;
+- Docker, CI, testing, and lightweight monitoring.
+
+The system is designed as historical/model-based decision support and will not claim access to live airline inventory or guaranteed future fare movements.

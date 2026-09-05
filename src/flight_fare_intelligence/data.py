@@ -112,21 +112,17 @@ def validate_dataset(df: pd.DataFrame, *, strict: bool = False, path: str = "<da
                 raise DataValidationError("Strict validation expected Unnamed: 0 to be a contiguous 0-based index")
 
     return ValidationSummary(
-    path=path,
-    rows=len(df),
-    columns=len(df.columns),
-    missing_values=int(df[RAW_REQUIRED_COLUMNS].isna().sum().sum()),
-    duplicate_rows=int(df.duplicated().sum()),
-    routes=int(
-        df[["source_city", "destination_city"]]
-        .drop_duplicates()
-        .shape[0]
-    ),
-    min_price=float(df["price"].min()),
-    max_price=float(df["price"].max()),
-    min_duration=float(df["duration"].min()),
-    max_duration=float(df["duration"].max()),
-    min_days_left=int(df["days_left"].min()),
-    max_days_left=int(df["days_left"].max()),
-    strict=strict,
-)
+        path=path,
+        rows=len(df),
+        columns=len(df.columns),
+        missing_values=int(df[RAW_REQUIRED_COLUMNS].isna().sum().sum()),
+        duplicate_rows=int(df.duplicated().sum()),
+        routes=routes,
+        min_price=float(df["price"].min()),
+        max_price=float(df["price"].max()),
+        min_duration=float(df["duration"].min()),
+        max_duration=float(df["duration"].max()),
+        min_days_left=int(df["days_left"].min()),
+        max_days_left=int(df["days_left"].max()),
+        strict=strict,
+    )
