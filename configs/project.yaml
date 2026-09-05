@@ -1,0 +1,38 @@
+project:
+  name: Flight Fare Intelligence System
+  task: regression
+  currency: INR
+  random_seed: 42
+
+data:
+  raw_path: data/raw/Flight_Booking.csv
+  target: price
+  expected_rows: 300153
+  expected_routes: 30
+features:
+  deployed:
+    - airline
+    - source_city
+    - destination_city
+    - departure_time
+    - stops
+    - class
+    - duration
+    - days_left
+  analysis_only:
+    - flight
+    - arrival_time
+  ignored:
+    - "Unnamed: 0"
+models:
+  planned:
+    - linear_regression
+    - random_forest
+    - xgboost
+    - catboost
+metrics:
+  primary: rmse
+  secondary:
+    - mae
+    - r2
+    - mape
