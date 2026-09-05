@@ -3,3 +3,8 @@ services:
     build: .
     ports:
       - "8000:8000"
+    environment:
+      MODEL_PATH: models/phase4_champion.joblib
+      INTELLIGENCE_BUNDLE_PATH: models/phase7_intelligence_bundle.joblib
+      LOG_LEVEL: INFO
+    restart: unless-stopped

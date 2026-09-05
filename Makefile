@@ -1,7 +1,7 @@
 PYTHON ?= python
 DATA ?= data/raw/Flight_Booking.csv
 
-.PHONY: install envcheck validate test format autofix lint-fix lint quality phase1 phase2 phase3 phase4 phase5 phase6 phase7
+.PHONY: install envcheck validate test format autofix lint-fix lint quality phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 api
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -16,17 +16,17 @@ test:
 	$(PYTHON) -m pytest
 
 format:
-	$(PYTHON) -m ruff format src scripts tests
+	$(PYTHON) -m ruff format src scripts tests api
 
 autofix:
-	$(PYTHON) -m ruff check src scripts tests --fix-only
-	$(PYTHON) -m ruff format src scripts tests
+	$(PYTHON) -m ruff check src scripts tests api --fix-only
+	$(PYTHON) -m ruff format src scripts tests api
 
 # Backward-compatible alias.
 lint-fix: autofix
 
 lint:
-	$(PYTHON) -m ruff check src scripts tests
+	$(PYTHON) -m ruff check src scripts tests api
 
 quality: autofix lint test
 
@@ -81,3 +81,14 @@ phase7: envcheck validate
 	$(PYTHON) -m ruff format src scripts tests
 	$(PYTHON) -m ruff check src scripts tests
 	$(PYTHON) -m pytest
+
+
+phase8: envcheck validate
+	$(PYTHON) -m scripts.run_phase8
+	$(PYTHON) -m ruff check src scripts tests api --fix-only
+	$(PYTHON) -m ruff format src scripts tests api
+	$(PYTHON) -m ruff check src scripts tests api
+	$(PYTHON) -m pytest
+
+api:
+	$(PYTHON) -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload

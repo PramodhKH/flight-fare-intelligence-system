@@ -11,7 +11,7 @@ An explainable airfare decision-intelligence platform built on **300,153 flight 
 - ✅ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
 - ✅ Phase 6 — Explainable Fare Engine
 - ✅ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
-- ⏳ Phase 8 — Production ML & Analytics API
+- ✅ Phase 8 — Production ML & Analytics API
 - ⏳ Phase 9 — Interactive Dashboard & Engineering Hardening
 - ⏳ Phase 10 — Final Results, Architecture & Portfolio Story
 
@@ -120,6 +120,20 @@ A reference execution achieved roughly **90.5% empirical coverage** for nominal 
 
 See [`PHASE_7.md`](PHASE_7.md) for the full uncertainty, scoring, and decision policy.
 
+## Phase 8 production API
+
+Phase 8 exposes the locked model and intelligence bundle through a versioned FastAPI service. The API provides single and bounded batch prediction, SHAP explanations, conformal uncertainty, Fare Opportunity Score, comparative reliability, booking guidance, route analytics, and counterfactual/booking-horizon endpoints.
+
+The service validates the exact eight-feature production contract with Pydantic, fails fast if deployment artifacts are missing, adds request IDs and latency headers, exposes OpenAPI documentation at `/docs`, and runs under Uvicorn or Docker. The sealed test set remains untouched.
+
+Run locally after the Phase 7 artifacts exist:
+
+```bash
+make api
+```
+
+See [`PHASE_8.md`](PHASE_8.md) for the endpoint and deployment contract.
+
 ## Run
 
 Create a Python 3.11 or 3.12 virtual environment and install the project:
@@ -139,9 +153,10 @@ make phase4
 make phase5
 make phase6
 make phase7
+make phase8
 ```
 
-`make phase7` expects the local Phase 4 champion and Phase 6 explainability report to exist. If generated artifacts were removed, rerun the earlier phase gates first.
+`make phase8` expects the local Phase 4 champion, Phase 7 intelligence bundle, and Phase 7 summary to exist. If generated artifacts were removed, rerun the required earlier phase gates first.
 
 Generated data, metrics, predictions, figures, and model binaries are intentionally ignored by Git; the code that reproduces them is version-controlled.
 

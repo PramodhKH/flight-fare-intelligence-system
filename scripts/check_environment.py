@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Verify the project ML/explainability stack resolves in the active interpreter."""
+"""Verify the project ML, explainability, and API stack in the active interpreter."""
 
 from __future__ import annotations
 
@@ -7,10 +7,14 @@ import json
 import sys
 
 import catboost
+import fastapi
+import httpx
 import numpy
 import pandas
+import pydantic
 import shap
 import sklearn
+import uvicorn
 import xgboost
 
 
@@ -25,6 +29,10 @@ def main() -> None:
             "xgboost": xgboost.__version__,
             "catboost": catboost.__version__,
             "shap": shap.__version__,
+            "fastapi": fastapi.__version__,
+            "pydantic": pydantic.__version__,
+            "httpx": httpx.__version__,
+            "uvicorn": uvicorn.__version__,
         },
         "ide_note": "VS Code should use <project>/.venv/bin/python on macOS/Linux.",
     }

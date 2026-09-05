@@ -191,3 +191,27 @@ phase7:
       - MONITOR
       - WAIT_OR_MONITOR
     live_price_forecast_claim: false
+
+phase8:
+  api_framework: fastapi
+  api_prefix: /v1
+  model_artifact: models/phase4_champion.joblib
+  intelligence_artifact: models/phase7_intelligence_bundle.joblib
+  sealed_split: test
+  max_batch_rows: 100
+  endpoints:
+    - health
+    - model_metadata
+    - predict
+    - batch_predict
+    - what_if
+    - booking_horizon
+    - routes
+    - route_analytics
+  observability:
+    request_id_header: X-Request-ID
+    latency_header: X-Process-Time-Ms
+    structured_request_logging: true
+  deployment:
+    uvicorn_port: 8000
+    docker_healthcheck: true
