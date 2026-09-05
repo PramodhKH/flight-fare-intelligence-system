@@ -1,10 +1,11 @@
-"""Phase 8 FastAPI contract tests with an injected deterministic engine."""
+"""Phase 8 FastAPI contract tests using warning-free ASGI transport."""
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
-from fastapi.testclient import TestClient
+import httpx
 
 from api.main import create_app
 from flight_fare_intelligence.api_schemas import FlightScenario
@@ -92,8 +93,12 @@ def _payload() -> dict[str, Any]:
     }
 
 
-def _client() -> TestClient:
-    return TestClient(create_app(FakeEngine()))
+async def _request(method: str, path: str, **kwargs: Any) -> httpx.Response:
+    app = create_app(FakeEngine())
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            return await client.request(method, path, **kwargs)
 
 
 def test_scenario_rejects_same_source_and_destination() -> None:
@@ -108,8 +113,7 @@ def test_scenario_rejects_same_source_and_destination() -> None:
 
 
 def test_health_and_observability_headers() -> None:
-    with _client() as client:
-        response = client.get("/v1/health", headers={"X-Request-ID": "phase8-test"})
+    response = asyncio.run(_request("GET", "/v1/health", headers={"X-Request-ID": "phase8-test"}))
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert response.headers["X-Request-ID"] == "phase8-test"
@@ -117,8 +121,7 @@ def test_health_and_observability_headers() -> None:
 
 
 def test_predict_uses_class_alias_contract() -> None:
-    with _client() as client:
-        response = client.post("/v1/predict", json=_payload())
+    response = asyncio.run(_request("POST", "/v1/predict", json=_payload()))
     assert response.status_code == 200
     assert response.json()["scenario"]["class"] == "Economy"
 
@@ -126,38 +129,55 @@ def test_predict_uses_class_alias_contract() -> None:
 def test_invalid_route_returns_422() -> None:
     payload = _payload()
     payload["destination_city"] = "Delhi"
-    with _client() as client:
-        response = client.post("/v1/predict", json=payload)
+    response = asyncio.run(_request("POST", "/v1/predict", json=payload))
     assert response.status_code == 422
 
 
 def test_batch_prediction_is_bounded_and_returns_row_count() -> None:
-    with _client() as client:
-        response = client.post(
+    response = asyncio.run(
+        _request(
+            "POST",
             "/v1/predict/batch",
             json={"scenarios": [_payload(), _payload()], "include_explanations": False},
         )
+    )
     assert response.status_code == 200
     assert response.json()["rows"] == 2
 
 
 def test_what_if_validates_changed_scenarios() -> None:
-    with _client() as client:
-        response = client.post(
+    response = asyncio.run(
+        _request(
+            "POST",
             "/v1/what-if",
             json={"scenario": _payload(), "feature": "days_left", "values": [7, 13, 21]},
         )
+    )
     assert response.status_code == 200
     assert response.json()["changed_feature"] == "days_left"
 
 
 def test_routes_and_route_analytics_endpoints() -> None:
-    with _client() as client:
-        routes = client.get("/v1/routes")
-        analytics = client.get(
-            "/v1/route-analytics",
-            params={"source_city": "Delhi", "destination_city": "Mumbai", "class": "Economy"},
-        )
+    async def exercise() -> tuple[httpx.Response, httpx.Response]:
+        app = create_app(FakeEngine())
+        async with app.router.lifespan_context(app):
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(
+                transport=transport,
+                base_url="http://testserver",
+            ) as client:
+                routes = await client.get("/v1/routes")
+                analytics = await client.get(
+                    "/v1/route-analytics",
+                    params={
+                        "source_city": "Delhi",
+                        "destination_city": "Mumbai",
+                        "class": "Economy",
+                    },
+                )
+                return routes, analytics
+
+    routes, analytics = asyncio.run(exercise())
     assert routes.status_code == 200
     assert routes.json()["rows"] == 1
     assert analytics.status_code == 200
@@ -165,7 +185,6 @@ def test_routes_and_route_analytics_endpoints() -> None:
 
 
 def test_booking_horizon_endpoint() -> None:
-    with _client() as client:
-        response = client.post("/v1/booking-horizon", json=_payload())
+    response = asyncio.run(_request("POST", "/v1/booking-horizon", json=_payload()))
     assert response.status_code == 200
     assert response.json()["curve"][0]["days_left"] == 1

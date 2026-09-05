@@ -18,6 +18,7 @@ from flight_fare_intelligence.api_schemas import (
     FlightScenario,
     WhatIfRequest,
 )
+from flight_fare_intelligence.monitoring import RequestTelemetry
 from flight_fare_intelligence.service import FareIntelligenceEngine
 
 LOGGER = logging.getLogger("flight_fare_api")
@@ -43,6 +44,7 @@ def create_app(engine: Any | None = None) -> FastAPI:
             app.state.engine = engine
         else:
             app.state.engine = _default_engine()
+        app.state.telemetry = RequestTelemetry()
         LOGGER.info("Flight fare intelligence artifacts loaded")
         yield
 
@@ -64,6 +66,11 @@ def create_app(engine: Any | None = None) -> FastAPI:
         elapsed_ms = (perf_counter() - start) * 1_000.0
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Process-Time-Ms"] = f"{elapsed_ms:.3f}"
+        request.app.state.telemetry.observe(
+            path=request.url.path,
+            status_code=response.status_code,
+            latency_ms=elapsed_ms,
+        )
         LOGGER.info(
             "%s %s status=%s latency_ms=%.3f request_id=%s",
             request.method,
@@ -101,6 +108,10 @@ def create_app(engine: Any | None = None) -> FastAPI:
     @app.get("/v1/model")
     def model_metadata(request: Request) -> dict[str, Any]:
         return request.app.state.engine.metadata()
+
+    @app.get("/v1/telemetry")
+    def telemetry(request: Request) -> dict[str, Any]:
+        return request.app.state.telemetry.snapshot()
 
     @app.post("/v1/predict")
     def predict(payload: FlightScenario, request: Request) -> dict[str, Any]:

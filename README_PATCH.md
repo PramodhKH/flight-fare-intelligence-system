@@ -1,9 +1,9 @@
-# Phase 8 runtime import hotfix
+# Phase 9 final UI fix
 
-This patch changes the Phase 8 smoke-test invocation from direct script execution to module execution:
+This patch only updates `frontend/app.py`.
 
-```bash
-python -m scripts.run_phase8
-```
-
-Running the script as a module keeps the repository root on Python's import path, so the root-level `api` package resolves reliably. It also adds `scripts/__init__.py` to make the module boundary explicit.
+Changes:
+- Moves `API Connected` and the XGBoost/conformal status pill into normal page flow under the subtitle so Streamlit's top toolbar cannot clip them.
+- Keeps the status row left-aligned and responsive.
+- Moves negative SHAP contribution labels inside their bars and increases chart margins/height to avoid overlap with feature labels.
+- No model, API, uncertainty, SHAP values, recommendation logic, or data-split behavior is changed.

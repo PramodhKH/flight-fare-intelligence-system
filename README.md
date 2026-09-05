@@ -12,7 +12,7 @@ An explainable airfare decision-intelligence platform built on **300,153 flight 
 - ✅ Phase 6 — Explainable Fare Engine
 - ✅ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
 - ✅ Phase 8 — Production ML & Analytics API
-- ⏳ Phase 9 — Interactive Dashboard & Engineering Hardening
+- ✅ Phase 9 — Interactive Dashboard & Engineering Hardening
 - ⏳ Phase 10 — Final Results, Architecture & Portfolio Story
 
 ## Dataset
@@ -134,6 +134,35 @@ make api
 
 See [`PHASE_8.md`](PHASE_8.md) for the endpoint and deployment contract.
 
+## Phase 9 interactive dashboard
+
+Phase 9 connects a polished Streamlit decision-support application to the Phase 8 FastAPI service. The UI exposes the complete eight-feature scenario contract and renders predicted fare, 90% uncertainty bounds, Fare Opportunity Score, reliability, model-based booking guidance, SHAP drivers, route analytics, booking-horizon intelligence, and one-feature-at-a-time what-if comparisons.
+
+The booking-horizon view deliberately overlays the jagged tree-model counterfactual with training-only historical route/class medians so split-driven discontinuities are not misrepresented as guaranteed future price movement.
+
+Phase 9 also adds bounded in-memory API telemetry, removes the previous FastAPI `TestClient` deprecation path in favor of HTTPX ASGI transport, expands CI/linting to the frontend, and provides a two-service Docker Compose stack.
+
+Run locally in two terminals:
+
+```bash
+make api
+make dashboard
+```
+
+Then open:
+
+```text
+http://localhost:8501
+```
+
+Or launch the complete containerized stack:
+
+```bash
+make stack
+```
+
+See [`PHASE_9.md`](PHASE_9.md) for the full frontend and engineering-hardening contract.
+
 ## Run
 
 Create a Python 3.11 or 3.12 virtual environment and install the project:
@@ -154,9 +183,10 @@ make phase5
 make phase6
 make phase7
 make phase8
+make phase9
 ```
 
-`make phase8` expects the local Phase 4 champion, Phase 7 intelligence bundle, and Phase 7 summary to exist. If generated artifacts were removed, rerun the required earlier phase gates first.
+`make phase9` expects the local Phase 4 champion, Phase 7 intelligence bundle, and Phase 7 summary to exist. If generated artifacts were removed, rerun the required earlier phase gates first.
 
 Generated data, metrics, predictions, figures, and model binaries are intentionally ignored by Git; the code that reproduces them is version-controlled.
 

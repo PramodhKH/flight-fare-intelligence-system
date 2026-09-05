@@ -4,14 +4,49 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 from pathlib import Path
 from time import perf_counter
 
-from fastapi.testclient import TestClient
+import httpx
 
 from api.main import create_app
 from flight_fare_intelligence.service import FareIntelligenceEngine
+
+
+async def _smoke(
+    app: object,
+    scenario: dict[str, object],
+) -> tuple[dict[str, httpx.Response], float]:
+    start = perf_counter()
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+            responses = {
+                "health": await client.get("/v1/health"),
+                "model": await client.get("/v1/model"),
+                "prediction": await client.post("/v1/predict", json=scenario),
+                "batch": await client.post(
+                    "/v1/predict/batch",
+                    json={"scenarios": [scenario, scenario], "include_explanations": False},
+                ),
+                "what_if": await client.post(
+                    "/v1/what-if",
+                    json={"scenario": scenario, "feature": "days_left", "values": [7, 13, 21]},
+                ),
+                "routes": await client.get("/v1/routes"),
+                "route_analytics": await client.get(
+                    "/v1/route-analytics",
+                    params={
+                        "source_city": scenario["source_city"],
+                        "destination_city": scenario["destination_city"],
+                        "class": scenario["class"],
+                    },
+                ),
+                "booking_horizon": await client.post("/v1/booking-horizon", json=scenario),
+            }
+    return responses, (perf_counter() - start) * 1_000.0
 
 
 def main() -> None:
@@ -49,42 +84,8 @@ def main() -> None:
     )
     app = create_app(engine)
     scenario = dict(phase7["demo"]["scenario"])
+    responses, total_ms = asyncio.run(_smoke(app, scenario))
 
-    start = perf_counter()
-    with TestClient(app) as client:
-        health = client.get("/v1/health")
-        model = client.get("/v1/model")
-        prediction = client.post("/v1/predict", json=scenario)
-        batch = client.post(
-            "/v1/predict/batch",
-            json={"scenarios": [scenario, scenario], "include_explanations": False},
-        )
-        what_if = client.post(
-            "/v1/what-if",
-            json={"scenario": scenario, "feature": "days_left", "values": [7, 13, 21]},
-        )
-        routes = client.get("/v1/routes")
-        route_analytics = client.get(
-            "/v1/route-analytics",
-            params={
-                "source_city": scenario["source_city"],
-                "destination_city": scenario["destination_city"],
-                "class": scenario["class"],
-            },
-        )
-        booking_curve = client.post("/v1/booking-horizon", json=scenario)
-    total_ms = (perf_counter() - start) * 1_000.0
-
-    responses = {
-        "health": health,
-        "model": model,
-        "prediction": prediction,
-        "batch": batch,
-        "what_if": what_if,
-        "routes": routes,
-        "route_analytics": route_analytics,
-        "booking_horizon": booking_curve,
-    }
     failures = {
         name: response.status_code
         for name, response in responses.items()
@@ -93,15 +94,15 @@ def main() -> None:
     if failures:
         raise RuntimeError(f"Phase 8 API smoke test failed: {failures}")
 
-    prediction_payload = prediction.json()
+    prediction_payload = responses["prediction"].json()
     report = {
         "phase": 8,
         "service": "FastAPI",
-        "champion": model.json()["champion"],
+        "champion": responses["model"].json()["champion"],
         "test_set_scored": False,
         "endpoints_smoke_tested": list(responses),
         "smoke_status": "passed",
-        "total_testclient_smoke_ms": round(total_ms, 3),
+        "total_asgi_smoke_ms": round(total_ms, 3),
         "demo": {
             "scenario": scenario,
             "predicted_fare": prediction_payload["predicted_fare"],

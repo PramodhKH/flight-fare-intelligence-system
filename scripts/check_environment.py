@@ -11,9 +11,11 @@ import fastapi
 import httpx
 import numpy
 import pandas
+import plotly
 import pydantic
 import shap
 import sklearn
+import streamlit
 import uvicorn
 import xgboost
 
@@ -33,6 +35,8 @@ def main() -> None:
             "pydantic": pydantic.__version__,
             "httpx": httpx.__version__,
             "uvicorn": uvicorn.__version__,
+            "streamlit": streamlit.__version__,
+            "plotly": plotly.__version__,
         },
         "ide_note": "VS Code should use <project>/.venv/bin/python on macOS/Linux.",
     }

@@ -27,6 +27,7 @@ The service is versioned under `/v1` and exposes:
 | --- | --- | --- |
 | GET | `/v1/health` | readiness and sealed-test status |
 | GET | `/v1/model` | champion, feature contract, uncertainty metadata |
+| GET | `/v1/telemetry` | bounded in-memory request/latency telemetry added in Phase 9 |
 | POST | `/v1/predict` | complete fare-intelligence prediction |
 | POST | `/v1/predict/batch` | bounded batch inference, maximum 100 scenarios |
 | POST | `/v1/what-if` | one-feature-at-a-time counterfactual analysis |
@@ -111,7 +112,7 @@ The gate performs:
 
 1. environment/import verification;
 2. strict canonical dataset validation;
-3. real-artifact API smoke testing through FastAPI `TestClient`;
+3. real-artifact API smoke testing through warning-free HTTPX ASGI transport;
 4. safe Ruff auto-fixes;
 5. Ruff formatting;
 6. strict Ruff validation; and
@@ -123,4 +124,4 @@ The Phase 8 smoke test exercises all eight API capabilities using the determinis
 
 The service is based on a static historical dataset. It does not have live inventory, current airline pricing, booking availability, or a true future price feed. `BUY_NOW`, `MONITOR`, and `WAIT_OR_MONITOR` are model-based decision-support labels, not promises about future airline behavior.
 
-Phase 9 will use this API as the backend for the interactive Streamlit Flight Fare Intelligence dashboard.
+Phase 9 uses this API as the backend for the interactive Streamlit Flight Fare Intelligence dashboard.

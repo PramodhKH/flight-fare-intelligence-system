@@ -1,10 +1,25 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
       MODEL_PATH: models/phase4_champion.joblib
       INTELLIGENCE_BUNDLE_PATH: models/phase7_intelligence_bundle.joblib
       LOG_LEVEL: INFO
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      FLIGHT_FARE_API_URL: http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
     restart: unless-stopped
