@@ -60,3 +60,13 @@ metrics:
     - mae
     - r2
     - mape
+
+baseline:
+  model: linear_regression
+  fit_split: train
+  benchmark_split: validation
+  sealed_split: test
+  preprocessing:
+    categorical: one_hot_encode_drop_first_handle_unknown_ignore
+    numeric: standard_scale
+  artifact_path: models/phase3_linear_regression.joblib

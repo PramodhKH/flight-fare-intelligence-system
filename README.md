@@ -6,7 +6,7 @@ An explainable airfare decision-intelligence platform built on **300,153 flight 
 
 - ✅ Phase 1 — Engineering Foundation, Legacy Audit & Data Contract
 - ✅ Phase 2 — Flight Market Intelligence, EDA & Leakage-Safe Splitting
-- ⏳ Phase 3 — Reproducible Baseline Regression System
+- ✅ Phase 3 — Reproducible Baseline Regression System
 - ⏳ Phase 4 — Large-Scale Tree Model Benchmarking
 - ⏳ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
 - ⏳ Phase 6 — Explainable Fare Engine
@@ -58,6 +58,12 @@ The project instead uses a **scenario-grouped, stratified 70/15/15 split**:
 
 See [`PHASE_2.md`](PHASE_2.md) for the canonical findings and split rationale.
 
+Phase 3 reuses those assignments exactly: preprocessing and Linear Regression are fitted on train, the official baseline is reported on validation, and the test split remains sealed for later champion evaluation. See [`PHASE_3.md`](PHASE_3.md).
+
+### Phase 3 baseline snapshot
+
+The deployment-aligned Linear Regression baseline reaches **₹6,744 validation RMSE**, **₹4,554 MAE**, and **0.9116 overall R²**. However, within-class R² falls to 0.050 for Economy and 0.306 for Business, and 5.94% of validation predictions are negative fares. These diagnostics establish a clear nonlinear modeling gap for Phase 4 rather than relying on aggregate R² alone.
+
 ## Run
 
 Create a Python 3.11 virtual environment and install the project:
@@ -79,7 +85,13 @@ Run Phase 2 analytics and split generation:
 make phase2
 ```
 
-Phase 2 produces local, reproducible outputs under:
+Train the Phase 3 Linear Regression baseline:
+
+```bash
+make phase3
+```
+
+Phases 2–3 produce local, reproducible outputs under:
 
 ```text
 reports/metrics/
