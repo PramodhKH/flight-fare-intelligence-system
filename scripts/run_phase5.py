@@ -244,9 +244,7 @@ def main() -> None:
     required_runner_columns = {"record_id", "random_forest_prediction"}
     missing_runner_columns = required_runner_columns - set(runner_up_raw.columns)
     if missing_runner_columns:
-        raise ValueError(
-            f"Runner-up predictions missing columns: {sorted(missing_runner_columns)}"
-        )
+        raise ValueError(f"Runner-up predictions missing columns: {sorted(missing_runner_columns)}")
     runner_lookup = runner_up_raw.set_index("record_id")["random_forest_prediction"]
     runner_predictions = validation_ids.map(runner_lookup)
     if runner_predictions.isna().any():
@@ -323,8 +321,7 @@ def main() -> None:
         },
         "market_context_support": {
             "definition": (
-                "training count for airline + source + destination + class + "
-                "departure_time + stops"
+                "training count for airline + source + destination + class + departure_time + stops"
             ),
             "sparse_threshold_rows": 25,
             "sparse_validation_rows": len(sparse),

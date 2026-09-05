@@ -153,10 +153,7 @@ def _local_plot(table: pd.DataFrame, output_path: Path) -> None:
     actual = float(plot_data.iloc[0]["actual_price"])
     predicted = float(plot_data.iloc[0]["predicted_price"])
     expected = float(plot_data.iloc[0]["expected_value"])
-    labels = [
-        f"{row.feature}={row.feature_value}"
-        for row in plot_data.itertuples(index=False)
-    ]
+    labels = [f"{row.feature}={row.feature_value}" for row in plot_data.itertuples(index=False)]
 
     figure, axis = plt.subplots(figsize=(9, 5.5))
     bars = axis.barh(labels, plot_data["shap_value_inr"])
@@ -372,11 +369,9 @@ def main() -> None:
 
     segment_top_features: dict[str, list[dict[str, Any]]] = {}
     for segment in SEGMENT_ORDER:
-        top = (
-            segment_drivers.loc[segment_drivers["segment"] == segment]
-            .nlargest(3, "mean_abs_shap_inr")
-            [["feature", "mean_abs_shap_inr", "importance_percent", "mean_shap_inr"]]
-        )
+        top = segment_drivers.loc[segment_drivers["segment"] == segment].nlargest(
+            3, "mean_abs_shap_inr"
+        )[["feature", "mean_abs_shap_inr", "importance_percent", "mean_shap_inr"]]
         segment_top_features[segment] = [
             _round_payload(row) for row in top.to_dict(orient="records")
         ]
@@ -384,19 +379,15 @@ def main() -> None:
     local_case_summary: dict[str, dict[str, Any]] = {}
     for case_label, diagnostic_position in representative.items():
         row = diagnostics.iloc[diagnostic_position]
-        top = (
-            local_explanations.loc[local_explanations["case_label"] == case_label]
-            .nsmallest(3, "rank")
-            [["feature", "feature_value", "shap_value_inr"]]
-        )
+        top = local_explanations.loc[local_explanations["case_label"] == case_label].nsmallest(
+            3, "rank"
+        )[["feature", "feature_value", "shap_value_inr"]]
         local_case_summary[case_label] = {
             "record_id": int(row["record_id"]),
             "actual_price": round(float(row["actual_price"]), 2),
             "predicted_price": round(float(row["predicted_price"]), 2),
             "absolute_error": round(float(row["absolute_error"]), 2),
-            "top_contributions": [
-                _round_payload(item) for item in top.to_dict(orient="records")
-            ],
+            "top_contributions": [_round_payload(item) for item in top.to_dict(orient="records")],
         }
 
     report = {
@@ -427,8 +418,7 @@ def main() -> None:
             6,
         ),
         "global_top_features": [
-            _round_payload(row)
-            for row in importance.head(5).to_dict(orient="records")
+            _round_payload(row) for row in importance.head(5).to_dict(orient="records")
         ],
         "segment_top_features": segment_top_features,
         "representative_local_cases": local_case_summary,

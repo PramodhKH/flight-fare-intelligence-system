@@ -151,9 +151,7 @@ def prediction_frame(
     )
     result["residual"] = result["actual_price"] - result["predicted_price"]
     result["absolute_error"] = result["residual"].abs()
-    result["absolute_percentage_error"] = (
-        result["absolute_error"] / result["actual_price"] * 100.0
-    )
+    result["absolute_percentage_error"] = result["absolute_error"] / result["actual_price"] * 100.0
     return result
 
 

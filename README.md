@@ -9,8 +9,8 @@ An explainable airfare decision-intelligence platform built on **300,153 flight 
 - ✅ Phase 3 — Reproducible Baseline Regression System
 - ✅ Phase 4 — Large-Scale Tree Model Benchmarking
 - ✅ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
-- ⏳ Phase 6 — Explainable Fare Engine
-- ⏳ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
+- ✅ Phase 6 — Explainable Fare Engine
+- ✅ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
 - ⏳ Phase 8 — Production ML & Analytics API
 - ⏳ Phase 9 — Interactive Dashboard & Engineering Hardening
 - ⏳ Phase 10 — Final Results, Architecture & Portfolio Story
@@ -94,13 +94,31 @@ Phase 5 kept XGBoost locked and showed that the excellent aggregate **0.9861 R²
 
 See [`PHASE_5.md`](PHASE_5.md) for the full reliability methodology and diagnostics.
 
-## Phase 6 explainability focus
+## Phase 6 explainability
 
 Phase 6 adds an additive SHAP explanation layer without retuning the champion or touching the sealed test split. It explains the full validation set, aggregates one-hot SHAP values back to the eight deployed inputs, compares model drivers across Economy, Business, last-minute, and high-fare segments, and generates exact local explanations for deterministic representative cases.
 
-The implementation deliberately separates **explanation** from **confidence**: SHAP describes how the model formed a fare estimate, while Phase 7 will use uncertainty and historical error behavior to determine how much trust to place in that estimate.
+The locked run confirmed that cabin class dominates the global model explanation, while booking horizon becomes substantially more influential for last-minute Economy cases and duration/airline effects become more prominent within Business pricing. SHAP reconstruction remains within sub-rupee numerical tolerance.
 
 See [`PHASE_6.md`](PHASE_6.md) for the methodology and generated artifacts.
+
+## Phase 7 fare intelligence and uncertainty
+
+Phase 7 turns the point estimator into a decision-intelligence engine. The existing validation split is scenario-preservingly divided into an uncertainty calibration subset and a separate uncertainty-evaluation subset while all **45,009 test rows remain sealed**.
+
+The engine adds:
+
+- tail-aware asymmetric conformal prediction intervals;
+- an explicit conservative high-fare Business guardrail motivated by Phase 5;
+- Fare Opportunity Scores based on training-only route/class/booking-horizon comparables;
+- comparative reliability scoring based on relative interval width rather than raw support count;
+- route and exact booking-horizon market intelligence;
+- one-feature-at-a-time counterfactual simulation; and
+- cautious `BUY_NOW`, `MONITOR`, or `WAIT_OR_MONITOR` model-based guidance.
+
+A reference execution achieved roughly **90.5% empirical coverage** for nominal 90% intervals while bringing the known ₹80k+ high-fare region to roughly **91% coverage** through deliberately wider risk-aware intervals. The guidance layer is explicitly historical/model-based and does not claim access to live airline inventory or guaranteed future fare movement.
+
+See [`PHASE_7.md`](PHASE_7.md) for the full uncertainty, scoring, and decision policy.
 
 ## Run
 
@@ -120,9 +138,10 @@ make phase3
 make phase4
 make phase5
 make phase6
+make phase7
 ```
 
-`make phase6` expects the local Phase 4 champion and Phase 5 reliability outputs to exist. If generated artifacts were removed, rerun the earlier phase gates first.
+`make phase7` expects the local Phase 4 champion and Phase 6 explainability report to exist. If generated artifacts were removed, rerun the earlier phase gates first.
 
 Generated data, metrics, predictions, figures, and model binaries are intentionally ignored by Git; the code that reproduces them is version-controlled.
 

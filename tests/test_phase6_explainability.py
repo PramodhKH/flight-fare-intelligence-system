@@ -88,18 +88,14 @@ def test_explain_raw_features_preserves_prediction_additivity() -> None:
 
 
 def test_global_importance_returns_all_raw_features() -> None:
-    raw_shap = pd.DataFrame(
-        {feature: np.arange(1, 5, dtype=float) for feature in MODEL_FEATURES}
-    )
+    raw_shap = pd.DataFrame({feature: np.arange(1, 5, dtype=float) for feature in MODEL_FEATURES})
     importance = global_importance(raw_shap)
     assert set(importance["feature"]) == set(MODEL_FEATURES)
     assert importance["importance_percent"].sum() == pytest.approx(100.0)
 
 
 def test_segment_importance_scores_requested_masks() -> None:
-    raw_shap = pd.DataFrame(
-        {feature: np.arange(1, 5, dtype=float) for feature in MODEL_FEATURES}
-    )
+    raw_shap = pd.DataFrame({feature: np.arange(1, 5, dtype=float) for feature in MODEL_FEATURES})
     metadata = pd.DataFrame({"class": ["Economy", "Business", "Economy", "Business"]})
     result = segment_importance(
         raw_shap,

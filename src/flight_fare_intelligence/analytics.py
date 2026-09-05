@@ -52,7 +52,9 @@ def scenario_duplication_summary(df: pd.DataFrame) -> dict[str, Any]:
         "rows_with_repeated_feature_vector": int(df.duplicated(MODEL_FEATURES).sum()),
         "unique_feature_vectors": int(df[MODEL_FEATURES].drop_duplicates().shape[0]),
         "repeated_feature_groups": len(repeated_groups),
-        "maximum_rows_in_one_feature_group": int(repeated_groups.max()) if len(repeated_groups) else 1,
+        "maximum_rows_in_one_feature_group": int(repeated_groups.max())
+        if len(repeated_groups)
+        else 1,
         "repeated_groups_with_price_variation": int((repeated_prices["nunique"] > 1).sum()),
         "median_within_group_price_range": float(repeated_prices["price_range"].median()),
         "mean_within_group_price_range": float(repeated_prices["price_range"].mean()),
@@ -104,9 +106,13 @@ def build_market_summary(df: pd.DataFrame) -> dict[str, Any]:
     top_routes: dict[str, list[dict[str, Any]]] = {}
     bottom_routes: dict[str, list[dict[str, Any]]] = {}
     for cabin_class in sorted(frame["class"].unique()):
-        subset = route_class[route_class["class"] == cabin_class].sort_values("mean", ascending=False)
+        subset = route_class[route_class["class"] == cabin_class].sort_values(
+            "mean", ascending=False
+        )
         top_routes[cabin_class] = _records(subset.head(5), ["route", "records", "mean", "median"])
-        bottom_routes[cabin_class] = _records(subset.tail(5), ["route", "records", "mean", "median"])
+        bottom_routes[cabin_class] = _records(
+            subset.tail(5), ["route", "records", "mean", "median"]
+        )
 
     horizon_summary = (
         frame.groupby(["class", "booking_horizon"], observed=True)[TARGET_COLUMN]
@@ -128,7 +134,9 @@ def build_market_summary(df: pd.DataFrame) -> dict[str, Any]:
     return {
         "rows": len(frame),
         "routes": int(frame["route"].nunique()),
-        "price_quantiles": {str(index): float(round(value, 2)) for index, value in quantiles.items()},
+        "price_quantiles": {
+            str(index): float(round(value, 2)) for index, value in quantiles.items()
+        },
         "class_summary": _records(class_summary, ["class", "records", "mean", "median", "std"]),
         "airline_by_class": _records(
             airline_summary, ["class", "airline", "records", "mean", "median"]
@@ -166,9 +174,7 @@ def generate_eda_figures(df: pd.DataFrame, output_dir: str | Path) -> list[Path]
 
     # 2. Daily booking-horizon behavior by cabin class.
     horizon = (
-        frame.groupby(["days_left", "class"], observed=True)[TARGET_COLUMN]
-        .median()
-        .reset_index()
+        frame.groupby(["days_left", "class"], observed=True)[TARGET_COLUMN].median().reset_index()
     )
     figure, axis = plt.subplots(figsize=(9, 5))
     for cabin_class in ["Economy", "Business"]:
@@ -228,13 +234,19 @@ def generate_eda_figures(df: pd.DataFrame, output_dir: str | Path) -> list[Path]
 
     # 5. Economy route heatmap.
     economy = frame[frame["class"] == "Economy"]
-    economy_matrix = economy.pivot_table(
-        index="source_city", columns="destination_city", values=TARGET_COLUMN, aggfunc="median"
-    ).sort_index().sort_index(axis=1)
+    economy_matrix = (
+        economy.pivot_table(
+            index="source_city", columns="destination_city", values=TARGET_COLUMN, aggfunc="median"
+        )
+        .sort_index()
+        .sort_index(axis=1)
+    )
     figure, axis = plt.subplots(figsize=(8, 6))
     image = axis.imshow(economy_matrix.values, aspect="auto")
     axis.set_title("Median Economy Fare by Route")
-    axis.set_xticks(range(len(economy_matrix.columns)), economy_matrix.columns, rotation=45, ha="right")
+    axis.set_xticks(
+        range(len(economy_matrix.columns)), economy_matrix.columns, rotation=45, ha="right"
+    )
     axis.set_yticks(range(len(economy_matrix.index)), economy_matrix.index)
     figure.colorbar(image, ax=axis, label="Median Fare (INR)")
     figure.tight_layout()
@@ -245,13 +257,19 @@ def generate_eda_figures(df: pd.DataFrame, output_dir: str | Path) -> list[Path]
 
     # 6. Business route heatmap.
     business = frame[frame["class"] == "Business"]
-    business_matrix = business.pivot_table(
-        index="source_city", columns="destination_city", values=TARGET_COLUMN, aggfunc="median"
-    ).sort_index().sort_index(axis=1)
+    business_matrix = (
+        business.pivot_table(
+            index="source_city", columns="destination_city", values=TARGET_COLUMN, aggfunc="median"
+        )
+        .sort_index()
+        .sort_index(axis=1)
+    )
     figure, axis = plt.subplots(figsize=(8, 6))
     image = axis.imshow(business_matrix.values, aspect="auto")
     axis.set_title("Median Business Fare by Route")
-    axis.set_xticks(range(len(business_matrix.columns)), business_matrix.columns, rotation=45, ha="right")
+    axis.set_xticks(
+        range(len(business_matrix.columns)), business_matrix.columns, rotation=45, ha="right"
+    )
     axis.set_yticks(range(len(business_matrix.index)), business_matrix.index)
     figure.colorbar(image, ax=axis, label="Median Fare (INR)")
     figure.tight_layout()

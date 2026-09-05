@@ -52,7 +52,6 @@ def _strata(df: pd.DataFrame) -> pd.Series:
     )
 
 
-
 def naive_row_random_overlap(
     df: pd.DataFrame,
     *,
@@ -87,6 +86,7 @@ def naive_row_random_overlap(
     overlap_count = len(overlapping_ids)
     affected_rows = int(comparison["scenario_id"].isin(overlapping_ids).sum())
     return overlap_count, affected_rows
+
 
 def create_split_assignments(
     df: pd.DataFrame,
@@ -186,7 +186,9 @@ def create_split_assignments(
 
     summary = SplitSummary(
         rows={key: int(value) for key, value in row_counts.items()},
-        row_proportions={key: float(round(value / len(df), 6)) for key, value in row_counts.items()},
+        row_proportions={
+            key: float(round(value / len(df), 6)) for key, value in row_counts.items()
+        },
         scenarios={key: int(value) for key, value in scenario_counts.items()},
         scenario_overlap_count=overlap_count,
         naive_row_random_scenario_overlap_count=naive_overlap_count,
@@ -194,6 +196,8 @@ def create_split_assignments(
         strata=int(unique_scenarios["stratum"].nunique()),
         minimum_scenarios_per_stratum=min_scenarios,
         target_mean={key: float(round(value, 2)) for key, value in target_stats["mean"].items()},
-        target_median={key: float(round(value, 2)) for key, value in target_stats["median"].items()},
+        target_median={
+            key: float(round(value, 2)) for key, value in target_stats["median"].items()
+        },
     )
     return assignments, summary

@@ -227,8 +227,7 @@ def main() -> None:
             "native thread runtimes, bounds peak memory, and makes local benchmarking stable."
         ),
         "family_reports": {
-            family: f"reports/metrics/phase4_{family}_benchmark.json"
-            for family in MODEL_FAMILIES
+            family: f"reports/metrics/phase4_{family}_benchmark.json" for family in MODEL_FAMILIES
         },
         "comparison": [
             {

@@ -51,7 +51,9 @@ def load_raw_dataset(path: str | Path) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-def validate_dataset(df: pd.DataFrame, *, strict: bool = False, path: str = "<dataframe>") -> ValidationSummary:
+def validate_dataset(
+    df: pd.DataFrame, *, strict: bool = False, path: str = "<dataframe>"
+) -> ValidationSummary:
     missing_columns = [c for c in RAW_REQUIRED_COLUMNS if c not in df.columns]
     if missing_columns:
         raise DataValidationError(f"Missing required columns: {missing_columns}")
@@ -89,7 +91,9 @@ def validate_dataset(df: pd.DataFrame, *, strict: bool = False, path: str = "<da
 
     same_city = df["source_city"].eq(df["destination_city"])
     if same_city.any():
-        raise DataValidationError(f"Found {int(same_city.sum())} rows with identical source and destination")
+        raise DataValidationError(
+            f"Found {int(same_city.sum())} rows with identical source and destination"
+        )
 
     if "Unnamed: 0" in df.columns:
         export_index = df["Unnamed: 0"]
@@ -108,8 +112,12 @@ def validate_dataset(df: pd.DataFrame, *, strict: bool = False, path: str = "<da
             )
         if "Unnamed: 0" in df.columns:
             expected = pd.RangeIndex(start=0, stop=len(df), step=1)
-            if not export_index.reset_index(drop=True).equals(pd.Series(expected, dtype=export_index.dtype)):
-                raise DataValidationError("Strict validation expected Unnamed: 0 to be a contiguous 0-based index")
+            if not export_index.reset_index(drop=True).equals(
+                pd.Series(expected, dtype=export_index.dtype)
+            ):
+                raise DataValidationError(
+                    "Strict validation expected Unnamed: 0 to be a contiguous 0-based index"
+                )
 
     return ValidationSummary(
         path=path,

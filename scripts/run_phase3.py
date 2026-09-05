@@ -28,9 +28,7 @@ def _round_metrics(metrics: dict[str, float]) -> dict[str, float]:
     return {key: round(value, 4) for key, value in metrics.items()}
 
 
-def _generate_figures(
-    predictions: pd.DataFrame, output_dir: Path, random_seed: int
-) -> list[str]:
+def _generate_figures(predictions: pd.DataFrame, output_dir: Path, random_seed: int) -> list[str]:
     output_dir.mkdir(parents=True, exist_ok=True)
     generated: list[str] = []
 
@@ -128,7 +126,9 @@ def main() -> None:
     )
     validation_by_class: dict[str, dict[str, float]] = {}
     for cabin_class, group in validation_diagnostics.groupby("class", sort=True):
-        class_metrics = regression_metrics(group["actual_price"], group["predicted_price"].to_numpy())
+        class_metrics = regression_metrics(
+            group["actual_price"], group["predicted_price"].to_numpy()
+        )
         validation_by_class[str(cabin_class)] = _round_metrics(class_metrics.to_dict())
 
     metrics_dir = Path("reports/metrics")

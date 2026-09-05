@@ -155,3 +155,39 @@ phase6:
     - business
     - last_minute_1_7_days
     - high_fare_80k_plus
+
+
+phase7:
+  champion: xgboost
+  sealed_split: test
+  validation_partition:
+    strategy: scenario_preserving_deterministic_hash
+    calibration_fraction: 0.50
+    evaluation_fraction: 0.50
+  uncertainty:
+    method: tail_aware_hierarchical_asymmetric_split_conformal_residual_intervals
+    nominal_coverage: 0.90
+    minimum_rows_per_rule: 150
+    high_fare_business_guardrail:
+      predicted_fare_bands:
+        - 60-80k
+        - 80k+
+      upper_residual_quantile: 0.995
+      minimum_rows: 50
+  fare_opportunity:
+    comparison_group:
+      - directed_route
+      - class
+      - booking_horizon
+    score: 100_minus_empirical_fare_percentile
+  reliability:
+    score: inverse_percentile_of_relative_prediction_interval_width
+    interpretation: comparative_uncertainty_not_probability
+  decision_support:
+    wait_window_days: 7
+    material_change_percent: 5.0
+    labels:
+      - BUY_NOW
+      - MONITOR
+      - WAIT_OR_MONITOR
+    live_price_forecast_claim: false
