@@ -1,6 +1,6 @@
 # Flight Fare Intelligence System
 
-An explainable airfare decision-intelligence platform built on **300,153 flight records**. The project progresses from leakage-aware large-tabular regression through uncertainty estimation, contextual fare scoring, route intelligence, SHAP explainability, counterfactual simulation, FastAPI inference, and a Streamlit decision-support dashboard.
+An explainable airfare decision-intelligence platform built on **300,153 flight records**. The project progresses from leakage-aware large-tabular regression through reliability analysis, explainability, uncertainty estimation, contextual fare scoring, route intelligence, counterfactual simulation, FastAPI inference, and a Streamlit decision-support dashboard.
 
 ## Project status
 
@@ -17,7 +17,7 @@ An explainable airfare decision-intelligence platform built on **300,153 flight 
 
 ## Dataset
 
-The canonical dataset contains 300,153 records spanning six airlines, six cities, 30 directed routes, Economy and Business cabin classes, trip duration, stops, departure/arrival periods, and booking horizons from 1–49 days before departure.
+The canonical dataset contains **300,153 records** spanning six airlines, six cities, 30 directed routes, Economy and Business cabin classes, trip duration, stops, departure/arrival periods, and booking horizons from 1–49 days before departure.
 
 The raw CSV is intentionally ignored by Git. Place it at:
 
@@ -27,7 +27,7 @@ data/raw/Flight_Booking.csv
 
 ## Production feature contract
 
-The deployed fare model will use exactly:
+The deployed fare model uses exactly:
 
 ```text
 airline
@@ -42,80 +42,92 @@ days_left
 
 Target: `price`
 
-`flight` and `arrival_time` remain available for analysis only. `Unnamed: 0` is an export index and is ignored by the model.
+`flight` and `arrival_time` remain analysis-only. `Unnamed: 0` is an export index and is ignored by the model.
 
-## Phase 2 evaluation design
+## Leakage-safe evaluation design
 
-Phase 2 discovered 10,434 rows that repeat an already-observed deployed feature vector. A naive row-random split can therefore place the exact same production-input scenario in both training and evaluation.
+Phase 2 found **10,434 rows** that repeat an already-observed deployed feature vector. A conventional row-random split can therefore place the exact same booking scenario in both training and evaluation.
 
 The project instead uses a **scenario-grouped, stratified 70/15/15 split**:
 
-- identical deployed feature vectors remain together;
-- stratification preserves directed route × cabin class × booking-horizon coverage;
-- booking-horizon buckets are 1–7, 8–14, 15–21, 22–35, and 36–49 days;
-- random seed is 42;
-- scenario overlap across train/validation/test must be exactly zero.
+- Train: 210,190 rows
+- Validation: 44,954 rows
+- Test: 45,009 rows
+- Exact deployed-scenario overlap across splits: **0**
 
-See [`PHASE_2.md`](PHASE_2.md) for the canonical findings and split rationale.
+All later phases reuse these assignments. The test set remains sealed through the model-development and reliability phases.
 
-Phase 3 reuses those assignments exactly: preprocessing and Linear Regression are fitted on train, the official baseline is reported on validation, and the test split remains sealed for later champion evaluation. See [`PHASE_3.md`](PHASE_3.md).
+## Model progression
 
-Phase 4 keeps that test set sealed while benchmarking Random Forest, XGBoost, and CatBoost. XGBoost is the current validation champion at **₹2,670 RMSE**, a 60.4% reduction from the Linear Regression baseline. See [`PHASE_4.md`](PHASE_4.md).
+```text
+Linear Regression → Random Forest → XGBoost → CatBoost
+```
 
-### Phase 3 baseline snapshot
+### Phase 3 baseline
 
-The deployment-aligned Linear Regression baseline reaches **₹6,744 validation RMSE**, **₹4,554 MAE**, and **0.9116 overall R²**. However, within-class R² falls to 0.050 for Economy and 0.306 for Business, and 5.94% of validation predictions are negative fares. These diagnostics establish a clear nonlinear modeling gap for Phase 4 rather than relying on aggregate R² alone.
+Linear Regression established the deployment-aligned baseline at approximately:
+
+```text
+Validation RMSE: ₹6,744
+Validation MAE:  ₹4,554
+Overall R²:      0.9116
+```
+
+However, 5.94% of its validation predictions were negative fares and within-class R² dropped sharply, establishing the need for nonlinear modeling.
+
+### Phase 4 model benchmark
+
+The locked Phase 4 run produced:
+
+| Model | RMSE | MAE | R² | MAPE |
+| --- | ---: | ---: | ---: | ---: |
+| **XGBoost** | **₹2,677.55** | ₹1,401.91 | **0.9861** | 10.39% |
+| Random Forest | ₹2,815.82 | **₹1,366.27** | 0.9846 | **9.76%** |
+| CatBoost | ₹4,227.89 | ₹2,458.36 | 0.9653 | 17.35% |
+| Linear Regression | ₹6,744.07 | ₹4,554.28 | 0.9116 | 46.25% |
+
+XGBoost is the Phase 4 champion under the RMSE-first selection policy, with Random Forest retained as the strongest robustness comparator.
+
+## Phase 5 reliability focus
+
+Phase 5 does not retune XGBoost. It diagnoses the locked champion across:
+
+- Economy vs Business;
+- airline and directed route;
+- booking horizon;
+- stops and departure period;
+- fare bands;
+- sparse/unseen categorical market contexts;
+- last-minute flights;
+- long-duration itineraries; and
+- extreme high-fare cases.
+
+The key reliability question is whether the excellent aggregate **0.9861 R²** remains trustworthy across the scenarios the final decision-support product will expose.
+
+See [`PHASE_5.md`](PHASE_5.md) for the full methodology and reference diagnostics.
 
 ## Run
 
-Create a Python 3.11 virtual environment and install the project:
+Create a Python 3.11 or 3.12 virtual environment and install the project:
 
 ```bash
 python -m pip install --upgrade pip setuptools wheel
 pip install -e ".[dev]"
 ```
 
-Validate Phase 1:
+Run individual phase gates:
 
 ```bash
 make phase1
-```
-
-Run Phase 2 analytics and split generation:
-
-```bash
 make phase2
-```
-
-Train the Phase 3 Linear Regression baseline:
-
-```bash
 make phase3
-```
-
-Run the Phase 4 tree-model benchmark:
-
-```bash
 make phase4
+make phase5
 ```
 
-Phases 2–4 produce local, reproducible outputs under:
+`make phase5` expects the local Phase 4 champion/model outputs to exist. If generated artifacts were removed, rerun `make phase4` first.
 
-```text
-reports/metrics/
-reports/figures/
-data/processed/
-```
-
-Generated data and figures are intentionally ignored by Git; the code that reproduces them is version-controlled.
-
-## Planned model progression
-
-```text
-Linear Regression → Random Forest → XGBoost → CatBoost
-```
-
-The champion model will be selected using predictive quality plus training cost, inference latency, model size, segment reliability, and robustness—not RMSE alone.
+Generated data, metrics, predictions, figures, and model binaries are intentionally ignored by Git; the code that reproduces them is version-controlled.
 
 ## Final product direction
 
@@ -132,4 +144,4 @@ The completed system will provide:
 - Streamlit decision-support dashboard;
 - Docker, CI, testing, and lightweight monitoring.
 
-The system is designed as historical/model-based decision support and will not claim access to live airline inventory or guaranteed future fare movements.
+The system is historical/model-based decision support and will not claim access to live airline inventory or guaranteed future fare movements.

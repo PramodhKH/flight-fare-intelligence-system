@@ -72,12 +72,12 @@ The search is intentionally bounded because Phase 4 is a model-family benchmark,
 
 | Model | RMSE | MAE | R² | MAPE |
 | --- | ---: | ---: | ---: | ---: |
-| **XGBoost** | **₹2,670.35** | ₹1,397.36 | **0.9861** | 10.36% |
-| Random Forest | ₹2,817.96 | **₹1,367.88** | 0.9846 | **9.78%** |
+| **XGBoost** | **₹2,677.55** | ₹1,401.91 | **0.9861** | 10.39% |
+| Random Forest | ₹2,815.82 | **₹1,366.27** | 0.9846 | **9.76%** |
 | CatBoost | ₹4,227.89 | ₹2,458.36 | 0.9653 | 17.35% |
 | Linear Regression | ₹6,744.07 | ₹4,554.28 | 0.9116 | 46.25% |
 
-XGBoost reduces validation RMSE by approximately **60.4% versus Linear Regression** and **5.2% versus the best Random Forest candidate**.
+XGBoost reduces validation RMSE by approximately **60.3% versus Linear Regression** and **4.9% versus the best Random Forest candidate**.
 
 Random Forest has slightly better MAE and MAPE than XGBoost, which is useful evidence that model selection cannot be reduced to one universal metric. The project keeps RMSE as the primary metric because large fare misses are especially costly for the later fare-intelligence layer.
 
@@ -87,10 +87,10 @@ Reference-run system measurements were:
 
 | Model | Fit time | Median 5k-row batch latency | Serialized size |
 | --- | ---: | ---: | ---: |
-| Linear Regression | 0.81 s | 12.46 ms | 0.005 MiB |
-| Random Forest | 7.10 s | 56.70 ms | 169.30 MiB |
-| XGBoost | 7.89 s | 62.86 ms | 16.64 MiB |
-| CatBoost | 10.08 s | **8.14 ms** | **0.67 MiB** |
+| Linear Regression | 0.18 s | 4.51 ms | 0.005 MiB |
+| Random Forest | 2.20 s | 29.45 ms | 169.62 MiB |
+| XGBoost | 2.30 s | 11.18 ms | 16.66 MiB |
+| CatBoost | 3.20 s | **2.03 ms** | **0.67 MiB** |
 
 Timing numbers are machine-dependent and should be regenerated locally. Model-size differences are still useful architectural signals: Random Forest is substantially larger than XGBoost, while CatBoost is extremely compact and fast in this bounded configuration but materially less accurate.
 

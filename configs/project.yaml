@@ -95,3 +95,40 @@ phase4:
       - mae
       - median_batch_latency
       - model_size
+
+phase5:
+  champion: xgboost
+  evaluation_split: validation
+  sealed_split: test
+  retuning_allowed: false
+  segment_dimensions:
+    - class
+    - airline
+    - route
+    - booking_horizon
+    - stops
+    - departure_time
+    - fare_band
+    - training_market_context_support
+  fare_bands_inr:
+    - "<10000"
+    - "10000-19999"
+    - "20000-39999"
+    - "40000-59999"
+    - "60000-79999"
+    - ">=80000"
+  sparse_market_context_threshold_rows: 25
+  market_context:
+    - airline
+    - source_city
+    - destination_city
+    - class
+    - departure_time
+    - stops
+  stress_tests:
+    - high_fare_80k_plus
+    - very_high_fare_100k_plus
+    - last_minute_1_7_days
+    - sparse_market_context
+    - unseen_market_context
+    - long_duration_p90_plus
