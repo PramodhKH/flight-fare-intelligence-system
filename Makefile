@@ -3,7 +3,7 @@ DATA ?= data/raw/Flight_Booking.csv
 RUFF_TARGETS = src scripts tests api frontend
 
 .PHONY: install envcheck validate test format autofix lint-fix lint quality \
-	phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 api dashboard stack
+	phase1 phase2 phase3 phase4 phase5 phase6 phase7 phase8 phase9 phase10 api dashboard stack
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -91,6 +91,14 @@ phase8: envcheck validate
 
 phase9: envcheck validate
 	$(PYTHON) -m scripts.run_phase9
+	$(PYTHON) -m ruff check $(RUFF_TARGETS) --fix-only
+	$(PYTHON) -m ruff format $(RUFF_TARGETS)
+	$(PYTHON) -m ruff check $(RUFF_TARGETS)
+	$(PYTHON) -m pytest
+
+phase10: envcheck validate
+	$(PYTHON) -m scripts.run_phase9
+	$(PYTHON) -m scripts.run_phase10 $(DATA)
 	$(PYTHON) -m ruff check $(RUFF_TARGETS) --fix-only
 	$(PYTHON) -m ruff format $(RUFF_TARGETS)
 	$(PYTHON) -m ruff check $(RUFF_TARGETS)

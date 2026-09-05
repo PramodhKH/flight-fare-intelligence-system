@@ -215,3 +215,29 @@ phase8:
   deployment:
     uvicorn_port: 8000
     docker_healthcheck: true
+
+phase9:
+  frontend: streamlit
+  backend: fastapi
+  api_port: 8000
+  dashboard_port: 8501
+  telemetry: bounded_in_memory
+  model_counterfactual_warning: true
+  historical_benchmark_overlay: true
+
+phase10:
+  release_version: 1.0.0
+  final_test_evaluation:
+    rows: 45009
+    first_scored_in_phase10: true
+    used_for_training_or_tuning: false
+    post_test_retuning_allowed: false
+  final_metrics:
+    rmse: 2670.0742
+    mae: 1403.7529
+    r2: 0.9862302
+    mape: 10.3760
+    interval_coverage_percent: 90.2842
+  final_quality_gate:
+    expected_tests: 72
+    strict_ruff: true

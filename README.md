@@ -1,33 +1,114 @@
-# Flight Fare Intelligence System
+# ✈️ Flight Fare Intelligence System
 
-An explainable airfare decision-intelligence platform built on **300,153 flight records**. The project progresses from leakage-aware large-tabular regression through reliability analysis, explainability, uncertainty estimation, contextual fare scoring, route intelligence, counterfactual simulation, FastAPI inference, and a Streamlit decision-support dashboard.
+[![CI](https://github.com/PramodhKH/flight-fare-intelligence-system/actions/workflows/ci.yml/badge.svg)](https://github.com/PramodhKH/flight-fare-intelligence-system/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688)
+![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B)
+![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)
 
-## Project status
+An end-to-end **airfare decision-intelligence platform** built on **300,153 flight records**. The system does more than predict ticket prices: it quantifies uncertainty, explains fare drivers, benchmarks the prediction against comparable historical flights, simulates booking decisions, and serves the complete experience through **FastAPI + Streamlit**.
 
-- ✅ Phase 1 — Engineering Foundation, Legacy Audit & Data Contract
-- ✅ Phase 2 — Flight Market Intelligence, EDA & Leakage-Safe Splitting
-- ✅ Phase 3 — Reproducible Baseline Regression System
-- ✅ Phase 4 — Large-Scale Tree Model Benchmarking
-- ✅ Phase 5 — Model Reliability, Segment Error Analysis & Robustness
-- ✅ Phase 6 — Explainable Fare Engine
-- ✅ Phase 7 — Fare Intelligence, Uncertainty & Decision Engine
-- ✅ Phase 8 — Production ML & Analytics API
-- ✅ Phase 9 — Interactive Dashboard & Engineering Hardening
-- ⏳ Phase 10 — Final Results, Architecture & Portfolio Story
+> **Final held-out test:** RMSE **₹2,670.07** · MAE **₹1,403.75** · R² **0.9862** · MAPE **10.38%** · 90% interval coverage **90.28%**
 
-## Dataset
+![Flight Fare Intelligence dashboard](docs/assets/dashboard_overview.png)
 
-The canonical dataset contains **300,153 records** spanning six airlines, six cities, 30 directed routes, Economy and Business cabin classes, trip duration, stops, departure/arrival periods, and booking horizons from 1–49 days before departure.
+---
 
-The raw CSV is intentionally ignored by Git. Place it at:
+## Why this project is different
+
+A typical flight-fare portfolio project ends at `model.predict()`.
+
+This one was designed as a production-oriented ML system:
+
+| Basic fare-prediction project | Flight Fare Intelligence System |
+| --- | --- |
+| Random train/test split | **Scenario-grouped, leakage-safe 70/15/15 split** |
+| One regression model | **Linear Regression → Random Forest → XGBoost → CatBoost** |
+| RMSE only | RMSE, MAE, R², MAPE, latency, model size, segment reliability |
+| Point estimate | **90% conformal prediction interval** |
+| Feature importance | **Global + local SHAP explanations** |
+| No pricing context | **Fare Opportunity Score + route/class/horizon benchmark** |
+| Static prediction | **1–49 day counterfactual booking-horizon engine** |
+| No decision layer | **BUY NOW / MONITOR / WAIT OR MONITOR guidance** |
+| Notebook | **FastAPI service + Streamlit dashboard + Docker + CI + telemetry** |
+
+---
+
+## Final results
+
+### Held-out test performance
+
+The **45,009-row test set remained sealed throughout model selection, reliability analysis, explainability, uncertainty calibration, API development, and dashboard development. It was first scored in Phase 10, after all model and product decisions were locked. No post-test retuning is allowed.**
+
+| Metric | Final held-out test |
+| --- | ---: |
+| RMSE | **₹2,670.07** |
+| MAE | **₹1,403.75** |
+| R² | **0.9862** |
+| MAPE | **10.38%** |
+| Median absolute error | **₹640.47** |
+| P90 absolute error | **₹3,488.67** |
+| 90% interval coverage | **90.28%** |
+| Median 90% interval width | **₹3,706.09** |
+
+The final test result closely tracks validation performance (**₹2,677.55 RMSE / 0.9861 R²**), which supports the stability of the model-selection process rather than suggesting validation overfitting.
+
+![Final held-out test: actual versus predicted fare](docs/assets/final_test_actual_vs_predicted.png)
+
+The conformal layer also retained the intended coverage behavior on untouched data:
+
+![Final held-out 90% interval coverage by cabin class](docs/assets/final_test_interval_coverage.png)
+
+### Segment reliability
+
+| Segment | Test RMSE | Test MAE | Key observation |
+| --- | ---: | ---: | --- |
+| Economy | **₹1,461.93** | ₹834.71 | Strong absolute accuracy; percentage error remains more sensitive at low fares |
+| Business | **₹4,261.72** | ₹2,661.41 | Higher absolute uncertainty due to larger fare scale |
+| 1–7 days before departure | **₹4,426.26** | ₹2,696.61 | Last-minute bookings remain the hardest horizon |
+| 22–35 days before departure | **₹2,104.97** | ₹1,103.59 | More stable booking window |
+| ₹80K+ fares | **₹13,047.48** | ₹10,685.30 | Known high-fare tail weakness persists on unseen data |
+
+The high-fare tail was **not hidden or tuned away** after validation. On the final test set, ₹80K+ fares were underpredicted **93.54%** of the time, confirming the need for wider uncertainty and conservative decision support in that region.
+
+---
+
+## Model progression
+
+| Model | Validation RMSE | MAE | R² | MAPE | 5K-row latency | Artifact size |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Linear Regression | ₹6,744.07 | ₹4,554.28 | 0.9116 | 46.25% | 4.51 ms | 0.005 MB |
+| CatBoost | ₹4,227.89 | ₹2,458.36 | 0.9653 | 17.35% | **2.03 ms** | **0.67 MB** |
+| Random Forest | ₹2,815.82 | **₹1,366.27** | 0.9846 | **9.76%** | 29.45 ms | 169.62 MB |
+| **XGBoost** | **₹2,677.55** | ₹1,401.91 | **0.9861** | 10.39% | 11.18 ms | 16.66 MB |
+
+XGBoost was selected using an **RMSE-first validation policy** with MAE, inference latency, and model size as production tie-breakers. Random Forest remained the strongest runner-up but was roughly 10× larger and slower at batch inference.
+
+![Validation accuracy versus inference latency](docs/assets/model_accuracy_latency.png)
+
+---
+
+## Leakage-safe evaluation
+
+The raw dataset contains **10,434 rows that repeat an already-observed deployed feature vector**. A conventional seeded row-random split would place **4,679 exact production scenarios across multiple splits**, affecting **9,674 rows**.
+
+The project therefore uses a deterministic **scenario-grouped, stratified split**:
 
 ```text
-data/raw/Flight_Booking.csv
+Train        210,190 rows   70.03%
+Validation    44,954 rows   14.98%
+Test          45,009 rows   15.00%
+
+Exact deployed-scenario overlap across splits: 0
 ```
 
-## Production feature contract
+All later phases reuse the same assignments.
 
-The deployed fare model uses exactly:
+---
+
+## Explainable fare engine
+
+Phase 6 explains the locked XGBoost model across all 44,954 validation rows and aggregates transformed one-hot SHAP values back to the eight production inputs:
 
 ```text
 airline
@@ -40,169 +121,305 @@ duration
 days_left
 ```
 
-Target: `price`
+Global mean absolute SHAP importance was dominated by **cabin class (~69.1%)**, followed by duration, booking horizon, airline, and route components. Segment analysis showed that `days_left` becomes substantially more influential for last-minute Economy bookings, while duration and airline effects grow within Business pricing.
 
-`flight` and `arrival_time` remain analysis-only. `Unnamed: 0` is an export index and is ignored by the model.
+Local explanations preserve additive reconstruction to sub-rupee tolerance, enabling the API and dashboard to answer:
 
-## Leakage-safe evaluation design
+> **Why did the model estimate this fare?**
 
-Phase 2 found **10,434 rows** that repeat an already-observed deployed feature vector. A conventional row-random split can therefore place the exact same booking scenario in both training and evaluation.
+---
 
-The project instead uses a **scenario-grouped, stratified 70/15/15 split**:
+## Reliability and uncertainty
 
-- Train: 210,190 rows
-- Validation: 44,954 rows
-- Test: 45,009 rows
-- Exact deployed-scenario overlap across splits: **0**
+The reliability analysis revealed two recurring hard regions:
 
-All later phases reuse these assignments. The test set remains sealed through the model-development and reliability phases.
+- **last-minute bookings**;
+- **high-value Business fares**, especially the ₹80K+ tail.
 
-## Model progression
+![Mean XGBoost prediction bias by fare band](docs/assets/high_fare_bias.png)
 
-```text
-Linear Regression → Random Forest → XGBoost → CatBoost
-```
+Phase 7 therefore adds a **tail-aware hierarchical asymmetric split-conformal interval** instead of returning only a point estimate.
 
-### Phase 3 baseline
+The uncertainty calibrator was fit on a scenario-preserving half of the validation split and evaluated on the other half before the test set was touched. It achieved **90.46% validation-evaluation coverage** for a nominal 90% target and **90.28% coverage on the final held-out test**.
 
-Linear Regression established the deployment-aligned baseline at approximately:
+Reliability is represented as a **comparative uncertainty score based on relative interval width**. It is intentionally **not described as a probability that the model is correct**.
 
-```text
-Validation RMSE: ₹6,744
-Validation MAE:  ₹4,554
-Overall R²:      0.9116
-```
+---
 
-However, 5.94% of its validation predictions were negative fares and within-class R² dropped sharply, establishing the need for nonlinear modeling.
+## Fare intelligence layer
 
-### Phase 4 model benchmark
+A prediction is enriched with several decision-support signals.
 
-The locked Phase 4 run produced:
+### Fare Opportunity Score
 
-| Model | RMSE | MAE | R² | MAPE |
-| --- | ---: | ---: | ---: | ---: |
-| **XGBoost** | **₹2,677.55** | ₹1,401.91 | **0.9861** | 10.39% |
-| Random Forest | ₹2,815.82 | **₹1,366.27** | 0.9846 | **9.76%** |
-| CatBoost | ₹4,227.89 | ₹2,458.36 | 0.9653 | 17.35% |
-| Linear Regression | ₹6,744.07 | ₹4,554.28 | 0.9116 | 46.25% |
-
-XGBoost is the Phase 4 champion under the RMSE-first selection policy, with Random Forest retained as the strongest robustness comparator.
-
-## Phase 5 reliability findings
-
-Phase 5 kept XGBoost locked and showed that the excellent aggregate **0.9861 R²** is not uniformly reliable. Business fares and last-minute bookings carry materially larger absolute error, while the extreme ₹80k+ tail is systematically underpredicted. Raw training-context frequency was also shown to be insufficient as a standalone confidence proxy.
-
-See [`PHASE_5.md`](PHASE_5.md) for the full reliability methodology and diagnostics.
-
-## Phase 6 explainability
-
-Phase 6 adds an additive SHAP explanation layer without retuning the champion or touching the sealed test split. It explains the full validation set, aggregates one-hot SHAP values back to the eight deployed inputs, compares model drivers across Economy, Business, last-minute, and high-fare segments, and generates exact local explanations for deterministic representative cases.
-
-The locked run confirmed that cabin class dominates the global model explanation, while booking horizon becomes substantially more influential for last-minute Economy cases and duration/airline effects become more prominent within Business pricing. SHAP reconstruction remains within sub-rupee numerical tolerance.
-
-See [`PHASE_6.md`](PHASE_6.md) for the methodology and generated artifacts.
-
-## Phase 7 fare intelligence and uncertainty
-
-Phase 7 turns the point estimator into a decision-intelligence engine. The existing validation split is scenario-preservingly divided into an uncertainty calibration subset and a separate uncertainty-evaluation subset while all **45,009 test rows remain sealed**.
-
-The engine adds:
-
-- tail-aware asymmetric conformal prediction intervals;
-- an explicit conservative high-fare Business guardrail motivated by Phase 5;
-- Fare Opportunity Scores based on training-only route/class/booking-horizon comparables;
-- comparative reliability scoring based on relative interval width rather than raw support count;
-- route and exact booking-horizon market intelligence;
-- one-feature-at-a-time counterfactual simulation; and
-- cautious `BUY_NOW`, `MONITOR`, or `WAIT_OR_MONITOR` model-based guidance.
-
-A reference execution achieved roughly **90.5% empirical coverage** for nominal 90% intervals while bringing the known ₹80k+ high-fare region to roughly **91% coverage** through deliberately wider risk-aware intervals. The guidance layer is explicitly historical/model-based and does not claim access to live airline inventory or guaranteed future fare movement.
-
-See [`PHASE_7.md`](PHASE_7.md) for the full uncertainty, scoring, and decision policy.
-
-## Phase 8 production API
-
-Phase 8 exposes the locked model and intelligence bundle through a versioned FastAPI service. The API provides single and bounded batch prediction, SHAP explanations, conformal uncertainty, Fare Opportunity Score, comparative reliability, booking guidance, route analytics, and counterfactual/booking-horizon endpoints.
-
-The service validates the exact eight-feature production contract with Pydantic, fails fast if deployment artifacts are missing, adds request IDs and latency headers, exposes OpenAPI documentation at `/docs`, and runs under Uvicorn or Docker. The sealed test set remains untouched.
-
-Run locally after the Phase 7 artifacts exist:
-
-```bash
-make api
-```
-
-See [`PHASE_8.md`](PHASE_8.md) for the endpoint and deployment contract.
-
-## Phase 9 interactive dashboard
-
-Phase 9 connects a polished Streamlit decision-support application to the Phase 8 FastAPI service. The UI exposes the complete eight-feature scenario contract and renders predicted fare, 90% uncertainty bounds, Fare Opportunity Score, reliability, model-based booking guidance, SHAP drivers, route analytics, booking-horizon intelligence, and one-feature-at-a-time what-if comparisons.
-
-The booking-horizon view deliberately overlays the jagged tree-model counterfactual with training-only historical route/class medians so split-driven discontinuities are not misrepresented as guaranteed future price movement.
-
-Phase 9 also adds bounded in-memory API telemetry, removes the previous FastAPI `TestClient` deprecation path in favor of HTTPX ASGI transport, expands CI/linting to the frontend, and provides a two-service Docker Compose stack.
-
-Run locally in two terminals:
-
-```bash
-make api
-make dashboard
-```
-
-Then open:
+The model-estimated fare is compared with **training-only historical fares** from the same:
 
 ```text
-http://localhost:8501
+directed route + cabin class + booking horizon
 ```
 
-Or launch the complete containerized stack:
+The score is defined as `100 - empirical fare percentile`:
 
-```bash
-make stack
+| Score | Position |
+| ---: | --- |
+| 80–100 | Excellent Value |
+| 60–79 | Good Value |
+| 40–59 | Typical |
+| 20–39 | Above Typical |
+| 0–19 | Expensive |
+
+### Booking guidance
+
+The system holds every input fixed and varies only `days_left` to create a model counterfactual. It then combines that signal with the current Fare Opportunity Score to return one of:
+
+```text
+BUY_NOW
+MONITOR
+WAIT_OR_MONITOR
 ```
 
-See [`PHASE_9.md`](PHASE_9.md) for the full frontend and engineering-hardening contract.
+The guidance is deliberately framed as **historical/model-based decision support**. It does not have live airline inventory and does not claim to forecast guaranteed future fare movements.
 
-## Run
+---
 
-Create a Python 3.11 or 3.12 virtual environment and install the project:
+## System architecture
+
+```mermaid
+flowchart LR
+    A[300,153 raw flight records] --> B[Strict validation]
+    B --> C[Scenario-grouped 70/15/15 split]
+
+    C --> D[Train 210,190]
+    C --> E[Validation 44,954]
+    C --> T[Test 45,009\nsealed until Phase 10]
+
+    D --> M1[Linear Regression]
+    D --> M2[Random Forest]
+    D --> M3[XGBoost]
+    D --> M4[CatBoost]
+
+    E --> S[Model selection + reliability analysis]
+    M1 --> S
+    M2 --> S
+    M3 --> S
+    M4 --> S
+
+    S --> X[XGBoost champion]
+    X --> SHAP[SHAP explanation engine]
+    X --> CF[Counterfactual engine]
+    X --> U[Conformal uncertainty]
+
+    D --> MB[Training-only market benchmarks]
+    MB --> FOS[Fare Opportunity Score]
+    U --> REL[Reliability score]
+    CF --> GUIDE[Booking guidance]
+
+    SHAP --> API[FastAPI /v1]
+    U --> API
+    FOS --> API
+    REL --> API
+    GUIDE --> API
+
+    API --> UI[Streamlit dashboard]
+    API --> TEL[Bounded request telemetry]
+    UI --> USER[User / recruiter demo]
+
+    T --> FINAL[Phase 10 final held-out evaluation]
+    X --> FINAL
+    U --> FINAL
+```
+
+---
+
+## Product experience
+
+For one scenario, the dashboard can return:
+
+```text
+Predicted Fare            ₹11,802
+90% Expected Range        ₹9,312 – ₹15,343
+Fare Opportunity Score    34 / 100 — Above Typical
+Reliability               45 / 100 — Medium
+Guidance                  Monitor
+```
+
+alongside:
+
+- SHAP price drivers;
+- route/class historical benchmarks;
+- model-vs-historical booking-horizon intelligence;
+- alternative airline/departure/stops what-if comparisons;
+- API telemetry and model metadata.
+
+---
+
+## Production API
+
+FastAPI exposes a versioned `/v1` contract:
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/v1/health` | Readiness / artifact health |
+| GET | `/v1/model` | Public model metadata |
+| GET | `/v1/telemetry` | Bounded local request telemetry |
+| POST | `/v1/predict` | Full fare-intelligence prediction |
+| POST | `/v1/predict/batch` | Bounded batch inference, max 100 scenarios |
+| POST | `/v1/what-if` | One-feature-at-a-time counterfactual comparison |
+| POST | `/v1/booking-horizon` | 1–49 day model/historical horizon payload |
+| GET | `/v1/routes` | Available directed routes |
+| GET | `/v1/route-analytics` | Training-only route/class market context |
+
+OpenAPI documentation is available at:
+
+```text
+http://localhost:8000/docs
+```
+
+---
+
+## Run locally
+
+### 1. Environment
 
 ```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 pip install -e ".[dev]"
 ```
 
-Run individual phase gates:
+### 2. Add the dataset
+
+The raw CSV is intentionally not committed. Place it at:
+
+```text
+data/raw/Flight_Booking.csv
+```
+
+### 3. Reproduce the ML artifacts
 
 ```bash
-make phase1
 make phase2
 make phase3
 make phase4
 make phase5
 make phase6
 make phase7
-make phase8
-make phase9
 ```
 
-`make phase9` expects the local Phase 4 champion, Phase 7 intelligence bundle, and Phase 7 summary to exist. If generated artifacts were removed, rerun the required earlier phase gates first.
+### 4. Run the product
 
-Generated data, metrics, predictions, figures, and model binaries are intentionally ignored by Git; the code that reproduces them is version-controlled.
+Terminal 1:
 
-## Final product direction
+```bash
+make api
+```
 
-The completed system will provide:
+Terminal 2:
 
-- fare prediction with uncertainty bounds;
-- Fare Opportunity Score and contextual cheap/fair/expensive positioning;
-- route and booking-horizon intelligence;
-- Buy Now / Wait model-based guidance;
-- reliability scoring;
-- counterfactual what-if simulation;
-- SHAP explanations;
-- FastAPI single and batch inference;
-- Streamlit decision-support dashboard;
-- Docker, CI, testing, and lightweight monitoring.
+```bash
+make dashboard
+```
 
-The system is historical/model-based decision support and will not claim access to live airline inventory or guaranteed future fare movements.
+Then open:
+
+```text
+Dashboard  http://localhost:8501
+API        http://localhost:8000
+Swagger    http://localhost:8000/docs
+```
+
+Or run the two-service Docker stack:
+
+```bash
+make stack
+```
+
+---
+
+## Final quality gate
+
+Phase 10 runs the Phase 9 production smoke test, performs the **first held-out test evaluation**, applies safe Ruff autofixes/formatting, runs a strict lint gate, and executes the full automated suite:
+
+```bash
+make phase10
+```
+
+Expected final result:
+
+```text
+72 passed
+All checks passed!
+```
+
+The project also includes:
+
+- Docker + Docker Compose;
+- GitHub Actions CI;
+- strict Pydantic request validation;
+- request IDs and latency headers;
+- bounded batch inference;
+- in-memory API telemetry;
+- reproducible phase-gated experiment history.
+
+---
+
+## Repository structure
+
+```text
+api/                         FastAPI application
+frontend/                    Streamlit dashboard
+src/flight_fare_intelligence/
+  analytics.py               market analytics
+  splitting.py               leakage-safe scenario grouping
+  modeling.py                model pipelines and metrics
+  reliability.py             segment robustness diagnostics
+  explainability.py          SHAP aggregation and local explanations
+  uncertainty.py             conformal prediction intervals
+  intelligence.py            scoring and decision-support logic
+  service.py                 production intelligence engine
+  monitoring.py              lightweight API telemetry
+scripts/                     phase execution and validation gates
+tests/                       automated regression/integration tests
+docs/assets/                 recruiter-facing screenshots/figures
+legacy/                      original Intellipaat project evidence
+```
+
+---
+
+## Limitations
+
+This system is intentionally explicit about what the dataset can and cannot support:
+
+1. **No live airline inventory or pricing feed.** Predictions reflect patterns learned from the historical dataset.
+2. **Counterfactual booking curves are not temporal forecasts.** Tree-model discontinuities can occur when `days_left` crosses learned splits.
+3. **High-value fares remain harder.** The ₹80K+ tail shows systematic underprediction even on the final held-out test.
+4. **Prediction intervals are empirical, not guarantees.** Coverage is evaluated at the population/segment level.
+5. **Fare Opportunity Score is contextual, not a claim that a ticket is objectively cheap.** It compares the model estimate with training-only historical comparables.
+
+These limitations are surfaced in the product rather than hidden from the user.
+
+---
+
+## Project evolution
+
+The repository was built phase-by-phase rather than as a single notebook dump:
+
+1. Engineering foundation and data contract
+2. Market intelligence and leakage-safe splitting
+3. Linear Regression baseline
+4. RF / XGBoost / CatBoost benchmark
+5. Reliability and robustness diagnostics
+6. SHAP explainability
+7. Uncertainty and decision intelligence
+8. FastAPI production service
+9. Streamlit dashboard and hardening
+10. Final held-out evaluation and portfolio release
+
+See [`PHASE_10.md`](PHASE_10.md) for the final release record and [`docs/portfolio_snippets.md`](docs/portfolio_snippets.md) for resume/LinkedIn-ready descriptions.
+
+---
+
+## Portfolio positioning
+
+**Flight Fare Intelligence System** demonstrates the complete path from raw tabular data to an explainable production ML product: leakage-safe evaluation, nonlinear model benchmarking, segment reliability, uncertainty quantification, SHAP explanations, market-context scoring, counterfactual decision support, API engineering, frontend development, Docker, CI, testing, and observability.
