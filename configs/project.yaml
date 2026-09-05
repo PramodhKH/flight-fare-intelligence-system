@@ -70,3 +70,28 @@ baseline:
     categorical: one_hot_encode_drop_first_handle_unknown_ignore
     numeric: standard_scale
   artifact_path: models/phase3_linear_regression.joblib
+
+phase4:
+  fit_split: train
+  tuning_and_benchmark_split: validation
+  sealed_split: test
+  candidate_search:
+    random_forest:
+      - balanced
+      - high_capacity
+    xgboost:
+      - balanced
+      - high_capacity
+    catboost:
+      - compact_native_cat
+      - expanded_native_cat
+  system_benchmarks:
+    inference_sample_rows: 5000
+    inference_repeats: 5
+    compare_model_size: true
+  selection_policy:
+    primary: rmse
+    tie_breakers:
+      - mae
+      - median_batch_latency
+      - model_size
